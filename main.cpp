@@ -26,17 +26,17 @@ public:
 
 class Questions {
 private:
-    char *que, *A, *B, *C, *D, *correct_opt;
-    unsigned short queNo = 1;
+    char *que, *A, *B, *C, *D;
+    unsigned short queNo = 1, correctOpt;
 
 public:
-    Questions(char* que, char* A, char* B, char* C, char* D, char* correct_opt) {
+    Questions(char* que, char* A, char* B, char* C, char* D, char* correctOpt) {
         this->que = que;
         this->A = A;
         this->B = B;
         this->C = C;
         this->D = D;
-        this->correct_opt = correct_opt;
+        this->correctOpt = *correctOpt - '0';
     }
 
     void displayQuestion() {
@@ -51,7 +51,6 @@ public:
 
     bool checkAns() {
         int option;
-        int correctOpt = *correct_opt - '0';
         std::cout << "\n\n\t\tEnter Correct Option No.: ";
         std::cin >> option;
         std::cout << std::endl;
@@ -60,7 +59,6 @@ public:
     }
 
     void displayCorrectAns() {
-        unsigned short correctOpt = *correct_opt - '0';
         switch (correctOpt){
         case 1:
             std::cout << "\n\t\tWrong Answer!!!!" << "\n\t\tCorrect Answer is Option 1. " << A << std::endl;
