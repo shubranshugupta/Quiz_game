@@ -5,14 +5,17 @@
 #include <sstream>
 #include <string>
 
+
+
 class Player {
 private:
-    char *name, *score;
+    char* name;
+    unsigned short score;
 
 public:
     Player(char *name, char *score){
         this->name = name;
-        this->score = score;
+        this->score = *score - '0';
     }
 
     void displayName() {
@@ -22,6 +25,15 @@ public:
     void displayScore() {
         std::cout << "\t\tYour Last Score was " << score << std::endl;
     }
+
+    unsigned short getScore() {
+        return this->score;
+    }
+
+    char* getName() {
+        return this->name;
+    }
+
 };
 
 class Questions {
@@ -117,10 +129,17 @@ public:
         }
 
         int num_fields = mysql_num_fields(result);
-        MYSQL_ROW row = mysql_fetch_row(result);
-        Player* p1 = new Player(row[1], row[2]);
-
-        return p1;
+        try {
+            MYSQL_ROW row = mysql_fetch_row(result);
+            if (row == nullptr) {
+                throw "No Player of That Name";
+            }
+            Player* p1 = new Player(row[1], row[2]);
+            return p1;
+        }
+        catch (const char* e) {
+            return nullptr;
+        }
     };
 
     Questions* getQuestion(int id) {
@@ -137,10 +156,23 @@ public:
         }
 
         int num_fields = mysql_num_fields(result);
-        MYSQL_ROW row = mysql_fetch_row(result);
-        Questions* q1 = new Questions(row[1], row[2], row[3], row[4], row[5], row[6]);
+        try {
+            MYSQL_ROW row = mysql_fetch_row(result);
+            if (row == nullptr) {
+                throw "null pointer";
+            }
+            Questions* q1 = new Questions(row[1], row[2], row[3], row[4], row[5], row[6]);
+            return q1;
+        }
+        catch (const char* e) {
+            return nullptr;
+        }
+    }
 
-        return q1;
+    void uplodePlayerScore(Player *p1, unsigned short new_score) {
+        if (p1->getScore() < new_score) {
+
+        }
     }
 
 };
@@ -154,6 +186,10 @@ int main(int argc, char** argv){
     printf("Enter id: ");
     std::cin>>id;
     Questions* q1 = sql.getQuestion(id);
+    if (q1 == nullptr) {
+        std::cout << "Exception occure " << std::endl;
+        return 1;
+    }
     q1->displayQuestion();
     q1->displayOption();
     bool var = q1->checkAns();
