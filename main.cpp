@@ -2,20 +2,21 @@
 #include <stdlib.h>
 #include <iostream>
 #include <conio.h>
-#include <sstream>
 #include <string>
+#include <sstream>
 
 
-
+//****************** IMP Classes *********************//
 class Player {
 private:
-    char* name;
-    unsigned short score;
+    std::string name;
+    unsigned short score, played;
 
 public:
-    Player(char *name, char *score){
+    Player(char *name=nullptr, char *score=nullptr, char *played=nullptr){
         this->name = name;
         this->score = *score - '0';
+        this->played = *played - '0';
     }
 
     void displayName() {
@@ -30,19 +31,27 @@ public:
         return this->score;
     }
 
-    char* getName() {
+    std::string getName() {
         return this->name;
     }
 
+    unsigned short getPlayed() {
+        return this->played;
+    }
+
+    void setPlayed() {
+        this->played++;
+    }
 };
 
 class Questions {
 private:
-    char *que, *A, *B, *C, *D;
+    std::string que, A, B, C, D;
     unsigned short queNo = 1, correctOpt;
 
 public:
-    Questions(char* que, char* A, char* B, char* C, char* D, char* correctOpt) {
+
+    Questions(char* que=nullptr, char* A=nullptr, char* B=nullptr, char* C=nullptr, char* D=nullptr, char* correctOpt=nullptr) {
         this->que = que;
         this->A = A;
         this->B = B;
@@ -52,13 +61,13 @@ public:
     }
 
     void displayQuestion() {
-        std::cout << "\n\n\n\n\t\t" << queNo << " " << que << std::endl;
+        std::cout << "\n\n\n\n\t\tQ" << queNo << ". " << que << std::endl;
         queNo++;
     }
 
     void displayOption() {
-        std::cout << "\n\t\t1. " << A << "\t\t2. " << B << std::endl;
-        std::cout << "\n\t\t3. " << C << "\t\t4. " << D << std::endl;
+        std::cout << "\n\t\t1. " << A << "\n\t\t2. " << B;
+        std::cout << "\n\t\t3. " << C << "\n\t\t4. " << D << std::endl;
     }
 
     bool checkAns() {
@@ -134,7 +143,7 @@ public:
             if (row == nullptr) {
                 throw "No Player of That Name";
             }
-            Player* p1 = new Player(row[1], row[2]);
+            Player* p1 = new Player(row[1], row[2], row[3]);
             return p1;
         }
         catch (const char* e) {
@@ -171,34 +180,80 @@ public:
 
     void uplodePlayerScore(Player *p1, unsigned short new_score) {
         if (p1->getScore() < new_score) {
-
+            std::ostringstream str;
+            std::string query;
+            p1->setPlayed();
+            str << "UPDATE users SET score = " << new_score << ", played = " << p1->getPlayed();
+            str << " WHERE user_name=\"" << p1->getName() << "\";";
+            query = str.str();
+            if (mysql_query(con, query.c_str())) {
+                finish_with_error(con);
+            }
+        }
+        else{
+            p1->setPlayed();
         }
     }
 
 };
 
 
-
-int main(int argc, char** argv){
-    printf("hi running!!!");
-    int id;
-    Mysql sql;
-    printf("Enter id: ");
-    std::cin>>id;
-    Questions* q1 = sql.getQuestion(id);
-    if (q1 == nullptr) {
-        std::cout << "Exception occure " << std::endl;
-        return 1;
+//---------------- IMP Functions -------------------//
+void randoms(unsigned short lower, unsigned short upper, unsigned short* arr) {
+    unsigned short len = sizeof(arr) / sizeof(unsigned short);
+    for (unsigned short i = 0; i < len; i++) {
+        int num = (rand() % (upper - lower + 1)) + lower;
+        arr[i] = num;
     }
-    q1->displayQuestion();
-    q1->displayOption();
-    bool var = q1->checkAns();
-    if (var) {
-        std::cout << "\n\t\tCorrect Answer!!!" << std::endl;
+}
+
+void displayMainMenu() {
+    system("cls");
+    std::cout << "\t\t\t--------QUIZ GAME---------\n";
+    std::cout << "\n\t\t________________________________________";
+    std::cout << "\n\t\t\t       WELCOME ";
+    std::cout << "\n\t\t\t          to ";
+    std::cout << "\n\t\t\t       THE GAME ";
+    std::cout << "\n\t\t________________________________________";
+    std::cout << "\n\t\t_________________________________________";
+    std::cout << "\n\t\t > Press S to start the game";
+    std::cout << "\n\t\t > Press V to view the highest score  ";
+    std::cout << "\n\t\t > Press R to reset score";
+    std::cout << "\n\t\t > Press H for help            ";
+    std::cout << "\n\t\t > Press Q to quit             ";
+    std::cout << "\n\t\t________________________________________\n\n";
+}
+
+void help(Player *p1 = nullptr) {
+    system("cls");
+    if (p1 != nullptr) {
+        std::cout << "\n ------------------  Welcome " << p1->getName() << " to C Program Quiz Game --------------------------";
+        std::cout << "\n\n Here are some tips you might wanna know before playing:";
     }
     else {
-        q1->displayCorrectAns();
+        std::cout << "\n\n                              HELP";
+        std::cout << "\n -------------------------------------------------------------------------";
+        std::cout << "\n ......................... C program Quiz Game............................";
     }
-    delete q1;
-    return 1;
+    std::cout << "\n >> There are two rounds in the game, WARMUP ROUND & CHALLANGE ROUND";
+    std::cout << "\n >> In warmup round you will be asked a total of 3 questions to test your general";
+    std::cout << "\n    knowledge. You will be eligible to play the game if you can give atleast 2";
+    std::cout << "\n    right answers otherwise you can't play the Game...........";
+    std::cout << "\n >> Your game starts with the CHALLANGE ROUND. In this round you will be asked";
+    std::cout << "\n    total 10 questions.";
+    std::cout << "\n >> You will be given 4 options and you have to press A, B ,C or D for the";
+    std::cout << "\n    right option";
+    std::cout << "\n >> You will be asked questions continuously if you keep giving the right answers.";
+    std::cout << "\n >> No negative marking for wrong answers";
+
+    std::cout << "\n\n\t*********************BEST OF LUCK*********************************";
+}
+
+int main(int argc, char** argv){
+    Mysql sql;
+    std::string name;
+    std::cin >> name;
+    Player* p1 = sql.getPlayer(name);
+    //help(p1);
+    help();
 }
